@@ -18,7 +18,7 @@ const Sidebar = () => {
           </NavLink>
         </li>
 
-        {/* Enlaces de Administrador */}
+      
         {isAdmin && (
           <>
             <li className="nav-item mt-3">
@@ -36,8 +36,8 @@ const Sidebar = () => {
           </>
         )}
 
-        {/* Enlaces de Operador */}
-        {isOperator && (
+    
+        {(isAdmin || isOperator) && (
            <>
             <li className="nav-item mt-3">
               <small className="text-muted">OPERACIONES</small>
@@ -48,7 +48,7 @@ const Sidebar = () => {
            </>
         )}
          
-        {/* Enlaces Comunes (Admin y Operador) */}
+    
         {(isAdmin || isOperator) && (
             <>
             <li className="nav-item mt-3">

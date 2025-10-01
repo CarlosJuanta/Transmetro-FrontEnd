@@ -41,7 +41,7 @@ function App() {
             <Route path="/estaciones/:id_estacion" element={<EstacionDetalle />} />
             <Route path="/lineas" element={<Lineas />} />
             <Route path="/lineas/:id_linea/ruta" element={<LineaDetalle />} />
-            <Route path="/buses" element={<Buses />} />
+            <Route path="/buses" element={<Buses />} /> 
           </Route>
 
           <Route element={<ProtectedRoute rolesPermitidos={[1, 2]} />}>

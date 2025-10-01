@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getAllAsignacionesGuardia, createAsignacionGuardia, deleteAsignacionGuardia } from '../../../services/operador/asignacion.service';
 import { getAllPersonal } from '../../../services/admin/personal.service';
-import { getEstacionById } from '../../../services/admin/estacion.service'; // Usaremos esta
-import { getAllEstaciones } from '../../../services/admin/estacion.service'; // Y esta
+import { getEstacionById, getAllEstaciones } from '../../../services/admin/estacion.service';
 
 const initialFormState = { id_personal: '', id_acceso: '', fecha_turno: '' };
 
 const AsignacionesGuardias = () => {
-  const [asignaciones, setAsignaciones] = useState([]);
+  const [todasLasAsignaciones, setTodasLasAsignaciones] = useState([]);
   const [personal, setPersonal] = useState([]);
   const [estacionesConAccesos, setEstacionesConAccesos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -15,6 +14,8 @@ const AsignacionesGuardias = () => {
   
   const [formData, setFormData] = useState(initialFormState);
   const [formError, setFormError] = useState(null);
+
+  const [filtroEstacion, setFiltroEstacion] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,7 +30,7 @@ const AsignacionesGuardias = () => {
         const promesasEstacionesCompletas = estacionesSimples.map(est => getEstacionById(est.id_estacion));
         const estacionesCompletas = await Promise.all(promesasEstacionesCompletas);
         
-        setAsignaciones(asigData);
+        setTodasLasAsignaciones(asigData);
         setPersonal(personalData);
         setEstacionesConAccesos(estacionesCompletas);
 
@@ -57,21 +58,7 @@ const AsignacionesGuardias = () => {
 
     try {
       const nuevaAsignacion = await createAsignacionGuardia(formData);
-      // Para mostrar los datos completos sin recargar, necesitamos enriquecer la respuesta
-      const personalAsignado = personal.find(p => p.id_personal === parseInt(nuevaAsignacion.id_personal));
-      const accesoAsignado = estacionesConAccesos
-        .flatMap(e => e.accesos)
-        .find(a => a.id_acceso === parseInt(nuevaAsignacion.id_acceso));
-      const estacionDelAcceso = estacionesConAccesos.find(e => e.accesos.some(a => a.id_acceso === accesoAsignado.id_acceso));
-
-      const asignacionEnriquecida = {
-        ...nuevaAsignacion,
-        nombre_completo_personal: `${personalAsignado.nombre} ${personalAsignado.apellido}`,
-        nombre_acceso: accesoAsignado.nombre,
-        nombre_estacion: estacionDelAcceso.nombre
-      };
-
-      setAsignaciones([asignacionEnriquecida, ...asignaciones]);
+      setTodasLasAsignaciones([nuevaAsignacion, ...todasLasAsignaciones]);
       resetForm();
     } catch (err) {
       const message = err.response?.data?.message || 'Error al crear la asignación.';
@@ -83,7 +70,7 @@ const AsignacionesGuardias = () => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta asignación?')) {
         try {
             await deleteAsignacionGuardia(id);
-            setAsignaciones(asignaciones.filter(a => a.id_asignacion !== id));
+            setTodasLasAsignaciones(todasLasAsignaciones.filter(a => a.id_asignacion !== id));
         } catch (err) {
             const message = err.response?.data?.message || 'Error al eliminar la asignación.';
             alert(message);
@@ -95,6 +82,10 @@ const AsignacionesGuardias = () => {
     setFormData(initialFormState);
   };
 
+  const asignacionesFiltradas = filtroEstacion 
+    ? todasLasAsignaciones.filter(a => String(a.id_estacion) === filtroEstacion)
+    : todasLasAsignaciones;
+
   if (isLoading) return <p>Cargando datos...</p>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
@@ -102,7 +93,21 @@ const AsignacionesGuardias = () => {
     <div className="container mt-4">
       <div className="row">
         <div className="col-lg-8">
-          <h2>Historial de Asignaciones de Guardias</h2>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h2>Historial de Asignaciones de Guardias</h2>
+            <div className="w-50">
+                <select 
+                    className="form-select"
+                    value={filtroEstacion}
+                    onChange={e => setFiltroEstacion(e.target.value)}
+                >
+                    <option value="">Filtrar por Estación (Mostrar Todas)</option>
+                    {estacionesConAccesos.map(est => (
+                        <option key={est.id_estacion} value={est.id_estacion}>{est.nombre}</option>
+                    ))}
+                </select>
+            </div>
+          </div>
           <div className="table-responsive" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             <table className="table table-striped table-sm">
               <thead>
@@ -115,7 +120,7 @@ const AsignacionesGuardias = () => {
                 </tr>
               </thead>
               <tbody>
-                {asignaciones.map((a) => (
+                {asignacionesFiltradas.map((a) => (
                   <tr key={a.id_asignacion}>
                     <td>{a.nombre_completo_personal}</td>
                     <td>{a.nombre_acceso}</td>
