@@ -19,6 +19,7 @@ import LineaDetalle from './pages/protected/admin/LineasDetalle';
 import AsignacionesGuardias from './pages/protected/operador/AsignacionesGuardias';
 import AsignacionesPilotos from './pages/protected/operador/AsignacionesPilotos';
 import OperacionesEstacion from './pages/protected/operador/OperacionesEstacion';
+import ReportesGenerales from './pages/protected/reportes/ReportesGenerales';
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
             <Route path="/asignaciones-guardias" element={<AsignacionesGuardias />} />
             <Route path="/asignaciones-pilotos" element={<AsignacionesPilotos />} />
             <Route path="/operaciones" element={<OperacionesEstacion />} />
+            <Route path="/reportes" element={<ReportesGenerales />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>

@@ -11,8 +11,9 @@ const OperacionesEstacion = () => {
   
   const [idBusSeleccionado, setIdBusSeleccionado] = useState('');
   const [pasajeros, setPasajeros] = useState('');
+  
   const [formError, setFormError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
+  const [alerta, setAlerta] = useState(null);
 
   useEffect(() => {
     const fetchBuses = async () => {
@@ -32,7 +33,7 @@ const OperacionesEstacion = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
-    setSuccessMessage(null);
+    setAlerta(null);
     
     if (!idBusSeleccionado || !pasajeros) {
         setFormError('Debe seleccionar un bus y registrar el número de pasajeros.');
@@ -47,11 +48,7 @@ const OperacionesEstacion = () => {
     
     try {
         const resultado = await registrarLlegada(llegadaData);
-        let message = `Llegada del bus registrada con éxito (ID de Registro: ${resultado.id_registro}).`;
-        if (resultado.alerta) {
-            message += ` ALERTA GENERADA: ${resultado.alerta.tipo}.`;
-        }
-        setSuccessMessage(message);
+        setAlerta(resultado.alerta);
         setIdBusSeleccionado('');
         setPasajeros('');
     } catch (err) {
@@ -66,11 +63,11 @@ const OperacionesEstacion = () => {
   return (
     <div className="container mt-4">
       <div className="row justify-content-center">
-        <div className="col-lg-6">
-          <div className="card">
+        <div className="col-lg-7">
+          <div className="card shadow-sm">
             <div className="card-header">
-              <h3>Registro de Operaciones de Estación</h3>
-              <p className="text-muted">Estás operando en la estación ID: {usuario?.id_estacion || 'No asignada'}</p>
+              <h3>Registro de Operaciones</h3>
+              <p className="text-muted mb-0">Operando en la estación ID: {usuario?.id_estacion || 'No asignada'}</p>
             </div>
             <div className="card-body">
               <h5 className="card-title">Registrar Llegada de Bus</h5>
@@ -105,10 +102,6 @@ const OperacionesEstacion = () => {
                     required
                   />
                 </div>
-                
-                {formError && <div className="alert alert-danger mt-3">{formError}</div>}
-                {successMessage && <div className="alert alert-success mt-3">{successMessage}</div>}
-
                 <div className="d-grid">
                   <button type="submit" className="btn btn-primary btn-lg">
                     Registrar Llegada
@@ -116,6 +109,25 @@ const OperacionesEstacion = () => {
                 </div>
               </form>
             </div>
+            {alerta && (
+              <div className="card-footer">
+                {alerta.tipo === 'SOBREDEMANDA' && (
+                  <div className="alert alert-danger mb-0">
+                    <strong>¡Alerta de Sobredemanda!</strong> Notificar a central para enviar un bus de apoyo.
+                  </div>
+                )}
+                {alerta.tipo === 'BAJA_OCUPACION' && (
+                  <div className="alert alert-warning mb-0">
+                    <strong>Alerta de Baja Ocupación:</strong> El bus debe esperar 5 minutos adicionales antes de su salida.
+                  </div>
+                )}
+              </div>
+            )}
+            {formError && (
+                <div className="card-footer">
+                    <div className="alert alert-danger mb-0">{formError}</div>
+                </div>
+            )}
           </div>
         </div>
       </div>

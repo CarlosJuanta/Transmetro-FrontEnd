@@ -42,7 +42,7 @@ const LineaDetalle = () => {
   }, [id_linea]);
 
   const handleAddEstacion = (estacion) => {
-    const nuevaParada = { ...estacion, nombre_estacion: estacion.nombre };
+    const nuevaParada = { ...estacion, nombre_estacion: estacion.nombre, distancia_siguiente_parada: 0 };
     setRutaActual([...rutaActual, nuevaParada]);
     setEstacionesDisponibles(estacionesDisponibles.filter(e => e.id_estacion !== estacion.id_estacion));
   };
@@ -50,6 +50,7 @@ const LineaDetalle = () => {
   const handleRemoveEstacion = (parada) => {
     const estacionOriginal = { ...parada, nombre: parada.nombre_estacion };
     delete estacionOriginal.nombre_estacion;
+    delete estacionOriginal.distancia_siguiente_parada;
     
     setEstacionesDisponibles([...estacionesDisponibles, estacionOriginal]);
     setRutaActual(rutaActual.filter(r => r.id_estacion !== parada.id_estacion));
@@ -64,6 +65,12 @@ const LineaDetalle = () => {
     newRuta[index] = newRuta[targetIndex];
     newRuta[targetIndex] = temp;
     
+    setRutaActual(newRuta);
+  };
+
+  const handleDistanciaChange = (index, value) => {
+    const newRuta = [...rutaActual];
+    newRuta[index].distancia_siguiente_parada = value;
     setRutaActual(newRuta);
   };
 
@@ -89,25 +96,40 @@ const LineaDetalle = () => {
     <div className="container mt-4">
       <Link to="/lineas" className="btn btn-secondary mb-3">Volver a Líneas</Link>
       <h2>Gestionar Ruta de la Línea: {linea?.nombre}</h2>
-      <p>Usa los botones para construir y ordenar la ruta.</p>
+      <p>Usa los botones para construir la ruta, reordenarla e ingresar la distancia (en km) a la siguiente parada.</p>
 
       <div className="row">
-        <div className="col-md-6">
+        <div className="col-md-7">
           <h4>Ruta Actual ({rutaActual.length} paradas)</h4>
           <ul className="list-group">
             {rutaActual.map((parada, index) => (
-              <li key={parada.id_estacion} className="list-group-item d-flex justify-content-between align-items-center">
-                <span>{index + 1}. {parada.nombre_estacion || parada.nombre}</span>
-                <div>
-                  <button className="btn btn-sm btn-light me-1" onClick={() => moveEstacion(index, -1)} disabled={index === 0}>↑</button>
-                  <button className="btn btn-sm btn-light me-1" onClick={() => moveEstacion(index, 1)} disabled={index === rutaActual.length - 1}>↓</button>
-                  <button className="btn btn-sm btn-danger" onClick={() => handleRemoveEstacion(parada)}>X</button>
+              <li key={parada.id_estacion} className="list-group-item">
+                <div className="d-flex justify-content-between align-items-center">
+                  <span>{index + 1}. {parada.nombre_estacion || parada.nombre}</span>
+                  <div>
+                    <button className="btn btn-sm btn-light me-1" onClick={() => moveEstacion(index, -1)} disabled={index === 0}>↑</button>
+                    <button className="btn btn-sm btn-light me-1" onClick={() => moveEstacion(index, 1)} disabled={index === rutaActual.length - 1}>↓</button>
+                    <button className="btn btn-sm btn-danger" onClick={() => handleRemoveEstacion(parada)}>X</button>
+                  </div>
                 </div>
+                {index < rutaActual.length - 1 && (
+                  <div className="input-group input-group-sm mt-2">
+                    <span className="input-group-text">Distancia a la siguiente parada (km):</span>
+                    <input
+                      type="number"
+                      className="form-control"
+                      step="0.1"
+                      min="0"
+                      value={parada.distancia_siguiente_parada || ''}
+                      onChange={(e) => handleDistanciaChange(index, e.target.value)}
+                    />
+                  </div>
+                )}
               </li>
             ))}
           </ul>
         </div>
-        <div className="col-md-6">
+        <div className="col-md-5">
           <h4>Estaciones Disponibles ({estacionesDisponibles.length})</h4>
           <ul className="list-group">
             {estacionesDisponibles.map((estacion) => (

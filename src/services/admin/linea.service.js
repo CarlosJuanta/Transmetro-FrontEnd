@@ -52,7 +52,8 @@ const updateRutaDeLinea = async (id, rutaData) => {
     } catch (error) {
         throw error;
     }
-};
+}; 
+
 
 export {
   getAllLineas,

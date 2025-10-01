@@ -18,7 +18,7 @@ const Navbar = () => {
         <div className="d-flex align-items-center">
           {usuario && (
             <span className="navbar-text me-3">
-              Usuario ID: {usuario.id_usuario} | Rol: {usuario.id_rol}
+              USUARIO: {usuario.id_usuario} | Rol: {usuario.id_rol}
             </span>
           )}
           <button className="btn btn-outline-secondary" onClick={handleLogout}>
