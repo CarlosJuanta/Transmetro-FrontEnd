@@ -124,7 +124,6 @@ const Usuarios = () => {
                 <tr>
                   <th>Nombre Completo</th>
                   <th>Correo</th>
-                   <th>Contrasenia</th>
                   <th>Rol</th>
                   <th>Estación Asignada</th>
                   <th>Acciones</th>
@@ -135,7 +134,6 @@ const Usuarios = () => {
                   <tr key={user.id_usuario}>
                     <td>{user.nombre} {user.apellido}</td>
                     <td>{user.correo}</td>
-                     <td>{user.contrasenia}</td>
                     <td>{user.tipo_rol}</td>
                     <td>{user.nombre_estacion || 'N/A'}</td>
                     <td>
