@@ -11,7 +11,6 @@ const AsignacionesGuardias = () => {
   const [estacionesConAccesos, setEstacionesConAccesos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
   const [formData, setFormData] = useState(initialFormState);
   const [formError, setFormError] = useState(null);
   const [filtroEstacion, setFiltroEstacion] = useState('');
@@ -51,7 +50,6 @@ const AsignacionesGuardias = () => {
       setFormError('Todos los campos son obligatorios.');
       return;
     }
-
     try {
       const nuevaAsignacion = await createAsignacionGuardia(formData);
       setTodasLasAsignaciones([nuevaAsignacion, ...todasLasAsignaciones]);
@@ -74,13 +72,8 @@ const AsignacionesGuardias = () => {
     }
   };
 
-  const resetForm = () => {
-    setFormData(initialFormState);
-  };
-
-  const asignacionesFiltradas = filtroEstacion 
-    ? todasLasAsignaciones.filter(a => String(a.id_estacion) === filtroEstacion)
-    : todasLasAsignaciones;
+  const resetForm = () => { setFormData(initialFormState); };
+  const asignacionesFiltradas = filtroEstacion ? todasLasAsignaciones.filter(a => String(a.id_estacion) === filtroEstacion) : todasLasAsignaciones;
 
   if (isLoading) return <p>Cargando datos...</p>;
   if (error) return <div className="alert alert-danger">{error}</div>;
@@ -100,20 +93,8 @@ const AsignacionesGuardias = () => {
           </div>
           <div className="table-responsive" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             <table className="table table-striped table-sm">
-              <thead>
-                <tr><th>Guardia</th><th>Acceso</th><th>Estación</th><th>Fecha y Hora</th><th>Acciones</th></tr>
-              </thead>
-              <tbody>
-                {asignacionesFiltradas.map((a) => (
-                  <tr key={a.id_asignacion}>
-                    <td>{a.nombre_completo_personal}</td>
-                    <td>{a.nombre_acceso}</td>
-                    <td>{a.nombre_estacion}</td>
-                    <td>{new Date(a.fecha_turno).toLocaleString()}</td>
-                    <td><button className="btn btn-sm btn-danger" onClick={() => handleDelete(a.id_asignacion)}>Eliminar</button></td>
-                  </tr>
-                ))}
-              </tbody>
+              <thead><tr><th>Guardia</th><th>Acceso</th><th>Estación</th><th>Fecha y Hora</th><th>Acciones</th></tr></thead>
+              <tbody>{asignacionesFiltradas.map((a) => (<tr key={a.id_asignacion}><td>{a.nombre_completo_personal}</td><td>{a.nombre_acceso}</td><td>{a.nombre_estacion}</td><td>{new Date(a.fecha_turno).toLocaleString()}</td><td><button className="btn btn-sm btn-danger" onClick={() => handleDelete(a.id_asignacion)}>Eliminar</button></td></tr>))}</tbody>
             </table>
           </div>
         </div>
@@ -122,9 +103,9 @@ const AsignacionesGuardias = () => {
             <div className="card-body">
               <h5 className="card-title">Nueva Asignación</h5>
               <form onSubmit={handleSubmit}>
-                <div className="mb-3"><label className="form-label">Personal de Seguridad</label><select className="form-select" name="id_personal" value={formData.id_personal} onChange={handleInputChange} required><option value="">Seleccione un guardia</option>{personal.map(p => (<option key={p.id_personal} value={p.id_personal}>{p.nombre} {p.apellido}</option>))}</select></div>
-                <div className="mb-3"><label className="form-label">Acceso</label><select className="form-select" name="id_acceso" value={formData.id_acceso} onChange={handleInputChange} required><option value="">Seleccione un acceso</option>{estacionesConAccesos.map(est => (<optgroup key={est.id_estacion} label={est.nombre}>{est.accesos.map(acc => (<option key={acc.id_acceso} value={acc.id_acceso}>{acc.nombre}</option>))}</optgroup>))}</select></div>
-                <div className="mb-3"><label className="form-label">Fecha y Hora del Turno</label><input type="datetime-local" className="form-control" name="fecha_turno" value={formData.fecha_turno} onChange={handleInputChange} required /></div>
+                <div className="mb-3"><label className="form-label">Personal</label><select className="form-select" name="id_personal" value={formData.id_personal} onChange={handleInputChange} required><option value="">Seleccione...</option>{personal.map(p => (<option key={p.id_personal} value={p.id_personal}>{p.nombre} {p.apellido}</option>))}</select></div>
+                <div className="mb-3"><label className="form-label">Acceso</label><select className="form-select" name="id_acceso" value={formData.id_acceso} onChange={handleInputChange} required><option value="">Seleccione...</option>{estacionesConAccesos.map(est => (<optgroup key={est.id_estacion} label={est.nombre}>{est.accesos.map(acc => (<option key={acc.id_acceso} value={acc.id_acceso}>{acc.nombre}</option>))}</optgroup>))}</select></div>
+                <div className="mb-3"><label className="form-label">Fecha y Hora</label><input type="datetime-local" className="form-control" name="fecha_turno" value={formData.fecha_turno} onChange={handleInputChange} required /></div>
                 {formError && <div className="alert alert-danger mt-2">{formError}</div>}
                 <div className="d-grid"><button type="submit" className="btn btn-primary">Asignar Turno</button></div>
               </form>

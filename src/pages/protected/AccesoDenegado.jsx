@@ -10,7 +10,7 @@ const AccesoDenegado = () => {
         No tienes los permisos necesarios para ver esta página.
       </p>
       <Link to="/" className="btn btn-primary">
-        Volver al Dashboard
+        Volver al menu principal
       </Link>
     </div>
   );
