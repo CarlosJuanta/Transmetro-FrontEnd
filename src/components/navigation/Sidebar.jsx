@@ -14,7 +14,7 @@ const Sidebar = () => {
       <ul className="nav nav-pills flex-column mb-auto">
         <li className="nav-item">
           <NavLink to="/" className="nav-link">
-            Dashboard
+            Bienvenida
           </NavLink>
         </li>
 
