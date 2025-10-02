@@ -10,7 +10,6 @@ const Buses = () => {
   const [parqueos, setParqueos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
   const [formData, setFormData] = useState(initialFormState);
   const [formError, setFormError] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -44,14 +43,12 @@ const Buses = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
-    
     const busData = {
         placa: formData.placa,
         capacidad_maxima: formData.capacidad_maxima,
         id_linea: formData.id_linea || null,
         id_parqueo: formData.id_parqueo
     };
-
     try {
       if (isEditMode) {
         await updateBus(formData.id_bus, busData);
@@ -107,29 +104,8 @@ const Buses = () => {
           <h2>Lista de Buses</h2>
           <div className="table-responsive">
             <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Placa</th>
-                  <th>Capacidad</th>
-                  <th>Línea Asignada</th>
-                  <th>Parqueo</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {buses.map((bus) => (
-                  <tr key={bus.id_bus}>
-                    <td>{bus.placa}</td>
-                    <td>{bus.capacidad_maxima}</td>
-                    <td>{bus.nombre_linea || 'Sin Asignar'}</td>
-                    <td>{bus.nombre_parqueo}</td>
-                    <td>
-                      <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(bus)}>Editar</button>
-                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(bus.id_bus)}>Eliminar</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+              <thead><tr><th>Placa</th><th>Capacidad</th><th>Línea</th><th>Parqueo</th><th>Acciones</th></tr></thead>
+              <tbody>{buses.map((bus) => (<tr key={bus.id_bus}><td>{bus.placa}</td><td>{bus.capacidad_maxima}</td><td>{bus.nombre_linea || 'Sin Asignar'}</td><td>{bus.nombre_parqueo}</td><td><button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(bus)}>Editar</button><button className="btn btn-sm btn-danger" onClick={() => handleDelete(bus.id_bus)}>Eliminar</button></td></tr>))}</tbody>
             </table>
           </div>
         </div>
@@ -140,24 +116,10 @@ const Buses = () => {
               <form onSubmit={handleSubmit}>
                 <input type="text" className="form-control mb-2" name="placa" value={formData.placa} onChange={handleInputChange} placeholder="Placa" required />
                 <input type="number" className="form-control mb-2" name="capacidad_maxima" value={formData.capacidad_maxima} onChange={handleInputChange} placeholder="Capacidad Máxima" required />
-                <select className="form-select mb-2" name="id_linea" value={formData.id_linea} onChange={handleInputChange}>
-                  <option value="">Asignar Línea (Opcional)</option>
-                  {lineas.map(linea => (
-                    <option key={linea.id_linea} value={linea.id_linea}>{linea.nombre}</option>
-                  ))}
-                </select>
-                <select className="form-select mb-3" name="id_parqueo" value={formData.id_parqueo} onChange={handleInputChange} required>
-                  <option value="">Seleccione un Parqueo</option>
-                  {parqueos.map(parqueo => (
-                    <option key={parqueo.id_parqueo} value={parqueo.id_parqueo}>{parqueo.nombre} ({parqueo.nombre_estacion})</option>
-                  ))}
-                </select>
-                
+                <select className="form-select mb-2" name="id_linea" value={formData.id_linea} onChange={handleInputChange}><option value="">Asignar Línea (Opcional)</option>{lineas.map(linea => (<option key={linea.id_linea} value={linea.id_linea}>{linea.nombre}</option>))}</select>
+                <select className="form-select mb-3" name="id_parqueo" value={formData.id_parqueo} onChange={handleInputChange} required><option value="">Seleccione un Parqueo</option>{parqueos.map(parqueo => (<option key={parqueo.id_parqueo} value={parqueo.id_parqueo}>{parqueo.nombre} ({parqueo.nombre_estacion})</option>))}</select>
                 {formError && <div className="alert alert-danger mt-2">{formError}</div>}
-                <div className="d-grid gap-2">
-                  <button type="submit" className="btn btn-primary">{isEditMode ? 'Actualizar' : 'Crear'}</button>
-                  {isEditMode && (<button type="button" className="btn btn-secondary" onClick={resetForm}>Cancelar Edición</button>)}
-                </div>
+                <div className="d-grid gap-2"><button type="submit" className="btn btn-primary">{isEditMode ? 'Actualizar' : 'Crear'}</button>{isEditMode && (<button type="button" className="btn btn-secondary" onClick={resetForm}>Cancelar Edición</button>)}</div>
               </form>
             </div>
           </div>
