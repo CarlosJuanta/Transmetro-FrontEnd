@@ -2,39 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { getAllPilotos, createPiloto, updatePiloto, deletePiloto, getPilotoById } from '../../../services/admin/piloto.service';
 
 const initialFormState = {
-  id_piloto: null,
-  nombre: '',
-  apellido: '',
-  fecha_nacimiento: '',
-  dpi: '',
-  direccion_residencia: '',
-  telefono_celular: ''
+  id_piloto: null, nombre: '', apellido: '', fecha_nacimiento: '',
+  dpi: '', direccion_residencia: '', telefono_celular: ''
 };
-
 const initialEscolaridadState = [{ grado_academico: '', institucion_academica: '', anio_finalizacion: '' }];
 
 const Pilotos = () => {
   const [pilotos, setPilotos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
   const [formData, setFormData] = useState(initialFormState);
   const [escolaridad, setEscolaridad] = useState(initialEscolaridadState);
   const [formError, setFormError] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
+  const fetchPilotos = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getAllPilotos();
+      setPilotos(data);
+    } catch (err) {
+      setError('No se pudieron cargar los pilotos.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPilotos = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getAllPilotos();
-        setPilotos(data);
-      } catch (err) {
-        setError('No se pudieron cargar los pilotos.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchPilotos();
   }, []);
 
@@ -55,6 +49,7 @@ const Pilotos = () => {
   };
   
   const handleRemoveEscolaridad = (index) => {
+    if (escolaridad.length <= 1) return;
     const list = [...escolaridad];
     list.splice(index, 1);
     setEscolaridad(list);
@@ -64,17 +59,19 @@ const Pilotos = () => {
     e.preventDefault();
     setFormError(null);
 
-    const pilotoData = { ...formData, escolaridad: escolaridad.filter(e => e.grado_academico.trim() !== '') };
+    const pilotoData = { 
+        ...formData, 
+        escolaridad: escolaridad.filter(e => e.grado_academico && e.grado_academico.trim() !== '') 
+    };
     
     try {
       if (isEditMode) {
         await updatePiloto(pilotoData.id_piloto, pilotoData);
-        setPilotos(pilotos.map(p => p.id_piloto === pilotoData.id_piloto ? { ...p, ...pilotoData } : p));
       } else {
-        const nuevoPiloto = await createPiloto(pilotoData);
-        setPilotos([...pilotos, nuevoPiloto]);
+        await createPiloto(pilotoData);
       }
       resetForm();
+      fetchPilotos();
     } catch (err) {
       const message = err.response?.data?.message || `Error al ${isEditMode ? 'actualizar' : 'crear'} el piloto.`;
       setFormError(message);
@@ -130,27 +127,8 @@ const Pilotos = () => {
           <h2>Lista de Pilotos</h2>
           <div className="table-responsive">
             <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Nombre Completo</th>
-                  <th>DPI</th>
-                  <th>Teléfono</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pilotos.map((piloto) => (
-                  <tr key={piloto.id_piloto}>
-                    <td>{piloto.nombre} {piloto.apellido}</td>
-                    <td>{piloto.dpi}</td>
-                    <td>{piloto.telefono_celular}</td>
-                    <td>
-                      <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(piloto)}>Editar</button>
-                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(piloto.id_piloto)}>Eliminar</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+              <thead><tr><th>Nombre Completo</th><th>DPI</th><th>Teléfono</th><th>Acciones</th></tr></thead>
+              <tbody>{pilotos.map((piloto) => (<tr key={piloto.id_piloto}><td>{piloto.nombre} {piloto.apellido}</td><td>{piloto.dpi}</td><td>{piloto.telefono_celular}</td><td><button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(piloto)}>Editar</button><button className="btn btn-sm btn-danger" onClick={() => handleDelete(piloto.id_piloto)}>Eliminar</button></td></tr>))}</tbody>
             </table>
           </div>
         </div>
@@ -165,24 +143,17 @@ const Pilotos = () => {
                 <input type="text" className="form-control mb-2" name="dpi" value={formData.dpi} onChange={handleInputChange} placeholder="DPI" required />
                 <input type="text" className="form-control mb-2" name="telefono_celular" value={formData.telefono_celular} onChange={handleInputChange} placeholder="Teléfono" required />
                 <textarea className="form-control mb-2" name="direccion_residencia" value={formData.direccion_residencia} onChange={handleInputChange} placeholder="Dirección" required />
-                
                 <hr />
                 <h6>Escolaridad</h6>
-                {escolaridad.map((item, index) => (
-                    <div key={index} className="border p-2 mb-2 rounded">
-                        <input type="text" className="form-control form-control-sm mb-1" name="grado_academico" value={item.grado_academico} onChange={e => handleEscolaridadChange(index, e)} placeholder="Grado Académico" />
-                        <input type="text" className="form-control form-control-sm mb-1" name="institucion_academica" value={item.institucion_academica} onChange={e => handleEscolaridadChange(index, e)} placeholder="Institución" />
-                        <input type="number" className="form-control form-control-sm mb-1" name="anio_finalizacion" value={item.anio_finalizacion} onChange={e => handleEscolaridadChange(index, e)} placeholder="Año Finalización" />
-                        {escolaridad.length > 1 && <button type="button" className="btn btn-sm btn-outline-danger w-100" onClick={() => handleRemoveEscolaridad(index)}>Quitar</button>}
-                    </div>
-                ))}
+                {escolaridad.map((item, index) => (<div key={index} className="border p-2 mb-2 rounded">
+                    <input type="text" className="form-control form-control-sm mb-1" name="grado_academico" value={item.grado_academico || ''} onChange={e => handleEscolaridadChange(index, e)} placeholder="Grado Académico" />
+                    <input type="text" className="form-control form-control-sm mb-1" name="institucion_academica" value={item.institucion_academica || ''} onChange={e => handleEscolaridadChange(index, e)} placeholder="Institución" />
+                    <input type="number" className="form-control form-control-sm mb-1" name="anio_finalizacion" value={item.anio_finalizacion || ''} onChange={e => handleEscolaridadChange(index, e)} placeholder="Año Finalización" />
+                    {escolaridad.length > 1 && <button type="button" className="btn btn-sm btn-outline-danger w-100" onClick={() => handleRemoveEscolaridad(index)}>Quitar</button>}
+                </div>))}
                 <button type="button" className="btn btn-sm btn-outline-success w-100 mb-3" onClick={handleAddEscolaridad}>Añadir Grado</button>
-                
                 {formError && <div className="alert alert-danger mt-2">{formError}</div>}
-                <div className="d-grid gap-2">
-                  <button type="submit" className="btn btn-primary">{isEditMode ? 'Actualizar' : 'Crear'}</button>
-                  {isEditMode && (<button type="button" className="btn btn-secondary" onClick={resetForm}>Cancelar Edición</button>)}
-                </div>
+                <div className="d-grid gap-2"><button type="submit" className="btn btn-primary">{isEditMode ? 'Actualizar' : 'Crear'}</button>{isEditMode && (<button type="button" className="btn btn-secondary" onClick={resetForm}>Cancelar Edición</button>)}</div>
               </form>
             </div>
           </div>
