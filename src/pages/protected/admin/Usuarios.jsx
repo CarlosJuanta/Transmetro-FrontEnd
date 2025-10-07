@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAllUsuarios, createUsuario, updateUsuario, deleteUsuario } from '../../../services/admin/usuario.service';
+import { getAllUsuarios, createUsuario, updateUsuario, deleteUsuario, resetPassword } from '../../../services/admin/usuario.service';
 import { getAllRoles } from '../../../services/admin/rol.service';
 import { getAllEstaciones } from '../../../services/admin/estacion.service';
 
@@ -14,7 +14,6 @@ const Usuarios = () => {
   const [estaciones, setEstaciones] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
   const [formData, setFormData] = useState(initialFormState);
   const [formError, setFormError] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -32,19 +31,13 @@ const Usuarios = () => {
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
-        const [usersData, rolesData, estacionesData] = await Promise.all([
-          getAllUsuarios(),
-          getAllRoles(),
-          getAllEstaciones()
-        ]);
+        const [usersData, rolesData, estacionesData] = await Promise.all([ getAllUsuarios(), getAllRoles(), getAllEstaciones() ]);
         setUsuarios(usersData);
         setRoles(rolesData);
         setEstaciones(estacionesData);
       } catch (err) {
         setError('No se pudieron cargar los datos necesarios.');
-      } finally {
-        setIsLoading(false);
-      }
+      } finally { setIsLoading(false); }
     };
     fetchInitialData();
   }, []);
@@ -57,15 +50,10 @@ const Usuarios = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
-
     const userData = {
-        nombre: formData.nombre,
-        apellido: formData.apellido,
-        correo: formData.correo,
-        id_rol: formData.id_rol,
-        id_estacion: formData.id_estacion || null,
+        nombre: formData.nombre, apellido: formData.apellido, correo: formData.correo,
+        id_rol: formData.id_rol, id_estacion: formData.id_estacion || null,
     };
-
     try {
       if (isEditMode) {
         await updateUsuario(formData.id_usuario, userData);
@@ -85,14 +73,26 @@ const Usuarios = () => {
     setIsEditMode(true);
     setFormError(null);
     setFormData({
-        id_usuario: user.id_usuario,
-        nombre: user.nombre,
-        apellido: user.apellido,
-        correo: user.correo,
-        contrasenia: '',
-        id_rol: user.id_rol,
-        id_estacion: user.id_estacion || ''
+        id_usuario: user.id_usuario, nombre: user.nombre, apellido: user.apellido,
+        correo: user.correo, contrasenia: '', id_rol: user.id_rol, id_estacion: user.id_estacion || ''
     });
+  };
+
+  const handleResetPassword = async (id_usuario) => {
+    const nuevaContrasenia = window.prompt("Ingrese la nueva contraseña:");
+    if (nuevaContrasenia && nuevaContrasenia.trim() !== '') {
+        try {
+            const response = await resetPassword(id_usuario, nuevaContrasenia);
+            alert(response.message);
+        } catch (err) {
+            const message = err.response?.data?.message || 'Error al restablecer la contraseña.';
+            alert(message);
+        }
+    } else {
+        if (nuevaContrasenia !== null) {
+          alert("No ingresó contraseña.");
+        }
+    }
   };
 
   const handleDelete = async (id) => {
@@ -124,7 +124,7 @@ const Usuarios = () => {
           <div className="table-responsive">
             <table className="table table-striped">
               <thead><tr><th>Nombre Completo</th><th>Correo</th><th>Rol</th><th>Estación Asignada</th><th>Acciones</th></tr></thead>
-              <tbody>{usuarios.map((user) => (<tr key={user.id_usuario}><td>{user.nombre} {user.apellido}</td><td>{user.correo}</td><td>{user.tipo_rol}</td><td>{user.nombre_estacion || 'N/A'}</td><td><button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(user)}>Editar</button><button className="btn btn-sm btn-danger" onClick={() => handleDelete(user.id_usuario)}>Eliminar</button></td></tr>))}</tbody>
+              <tbody>{usuarios.map((user) => (<tr key={user.id_usuario}><td>{user.nombre} {user.apellido}</td><td>{user.correo}</td><td>{user.tipo_rol}</td><td>{user.nombre_estacion || 'N/A'}</td><td><button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(user)}>Editar</button><button className="btn btn-sm btn-danger me-2" onClick={() => handleDelete(user.id_usuario)}>Eliminar</button><button className="btn btn-sm btn-secondary" onClick={() => handleResetPassword(user.id_usuario)}>Contraseña</button></td></tr>))}</tbody>
             </table>
           </div>
         </div>
