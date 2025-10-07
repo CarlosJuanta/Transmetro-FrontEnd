@@ -4,13 +4,8 @@ import { getAllRoles } from '../../../services/admin/rol.service';
 import { getAllEstaciones } from '../../../services/admin/estacion.service';
 
 const initialFormState = {
-  id_usuario: null,
-  nombre: '',
-  apellido: '',
-  correo: '',
-  contrasenia: '',
-  id_rol: '',
-  id_estacion: ''
+  id_usuario: null, nombre: '', apellido: '', correo: '',
+  contrasenia: '', id_rol: '', id_estacion: ''
 };
 
 const Usuarios = () => {
@@ -24,8 +19,17 @@ const Usuarios = () => {
   const [formError, setFormError] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
+  const fetchUsers = async () => {
+    try {
+        const usersData = await getAllUsuarios();
+        setUsuarios(usersData);
+    } catch (err) {
+        setError('No se pudieron cargar los usuarios.');
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
       setIsLoading(true);
       try {
         const [usersData, rolesData, estacionesData] = await Promise.all([
@@ -42,7 +46,7 @@ const Usuarios = () => {
         setIsLoading(false);
       }
     };
-    fetchData();
+    fetchInitialData();
   }, []);
 
   const handleInputChange = (e) => {
@@ -64,14 +68,13 @@ const Usuarios = () => {
 
     try {
       if (isEditMode) {
-        const usuarioActualizado = await updateUsuario(formData.id_usuario, userData);
-        setUsuarios(usuarios.map(user => user.id_usuario === formData.id_usuario ? usuarioActualizado : user));
+        await updateUsuario(formData.id_usuario, userData);
       } else {
         userData.contrasenia = formData.contrasenia;
-        const nuevoUsuario = await createUsuario(userData);
-        setUsuarios([...usuarios, nuevoUsuario]);
+        await createUsuario(userData);
       }
       resetForm();
+      await fetchUsers();
     } catch (err) {
       const message = err.response?.data?.message || `Error al ${isEditMode ? 'actualizar' : 'crear'} el usuario.`;
       setFormError(message);
@@ -120,29 +123,8 @@ const Usuarios = () => {
           <h2>Lista de Usuarios</h2>
           <div className="table-responsive">
             <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Nombre Completo</th>
-                  <th>Correo</th>
-                  <th>Rol</th>
-                  <th>Estación Asignada</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {usuarios.map((user) => (
-                  <tr key={user.id_usuario}>
-                    <td>{user.nombre} {user.apellido}</td>
-                    <td>{user.correo}</td>
-                    <td>{user.tipo_rol}</td>
-                    <td>{user.nombre_estacion || 'N/A'}</td>
-                    <td>
-                      <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(user)}>Editar</button>
-                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(user.id_usuario)}>Eliminar</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+              <thead><tr><th>Nombre Completo</th><th>Correo</th><th>Rol</th><th>Estación Asignada</th><th>Acciones</th></tr></thead>
+              <tbody>{usuarios.map((user) => (<tr key={user.id_usuario}><td>{user.nombre} {user.apellido}</td><td>{user.correo}</td><td>{user.tipo_rol}</td><td>{user.nombre_estacion || 'N/A'}</td><td><button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(user)}>Editar</button><button className="btn btn-sm btn-danger" onClick={() => handleDelete(user.id_usuario)}>Eliminar</button></td></tr>))}</tbody>
             </table>
           </div>
         </div>
@@ -154,27 +136,11 @@ const Usuarios = () => {
                 <div className="mb-2"><input type="text" className="form-control" name="nombre" value={formData.nombre} onChange={handleInputChange} placeholder="Nombre" required /></div>
                 <div className="mb-2"><input type="text" className="form-control" name="apellido" value={formData.apellido} onChange={handleInputChange} placeholder="Apellido" required /></div>
                 <div className="mb-2"><input type="email" className="form-control" name="correo" value={formData.correo} onChange={handleInputChange} placeholder="Correo Electrónico" required /></div>
-                {!isEditMode && (
-                  <div className="mb-2"><input type="password" className="form-control" name="contrasenia" value={formData.contrasenia} onChange={handleInputChange} placeholder="Contraseña" required /></div>
-                )}
-                <div className="mb-2">
-                    <select className="form-select" name="id_rol" value={formData.id_rol} onChange={handleInputChange} required>
-                        <option value="">Seleccione un Rol</option>
-                        {roles.map(rol => (<option key={rol.id_rol} value={rol.id_rol}>{rol.tipo_rol}</option>))}
-                    </select>
-                </div>
-                <div className="mb-3">
-                    <select className="form-select" name="id_estacion" value={formData.id_estacion} onChange={handleInputChange}>
-                        <option value="">Seleccione una Estación (Opcional)</option>
-                        {estaciones.map(est => (<option key={est.id_estacion} value={est.id_estacion}>{est.nombre}</option>))}
-                    </select>
-                </div>
-                
+                {!isEditMode && (<div className="mb-2"><input type="password" className="form-control" name="contrasenia" value={formData.contrasenia} onChange={handleInputChange} placeholder="Contraseña" required /></div>)}
+                <div className="mb-2"><select className="form-select" name="id_rol" value={formData.id_rol} onChange={handleInputChange} required><option value="">Seleccione un Rol</option>{roles.map(rol => (<option key={rol.id_rol} value={rol.id_rol}>{rol.tipo_rol}</option>))}</select></div>
+                <div className="mb-3"><select className="form-select" name="id_estacion" value={formData.id_estacion} onChange={handleInputChange}><option value="">Seleccione una Estación (Opcional)</option>{estaciones.map(est => (<option key={est.id_estacion} value={est.id_estacion}>{est.nombre}</option>))}</select></div>
                 {formError && <div className="alert alert-danger mt-2">{formError}</div>}
-                <div className="d-grid gap-2">
-                  <button type="submit" className="btn btn-primary">{isEditMode ? 'Actualizar' : 'Crear'}</button>
-                  {isEditMode && (<button type="button" className="btn btn-secondary" onClick={resetForm}>Cancelar Edición</button>)}
-                </div>
+                <div className="d-grid gap-2"><button type="submit" className="btn btn-primary">{isEditMode ? 'Actualizar' : 'Crear'}</button>{isEditMode && (<button type="button" className="btn btn-secondary" onClick={resetForm}>Cancelar Edición</button>)}</div>
               </form>
             </div>
           </div>
